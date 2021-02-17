@@ -1,0 +1,7 @@
+domain: adva.domain
+repo: simple-ingress
+resources:
+- group: newgroup
+  kind: SimpleIngress
+  version: v1
+version: "2"

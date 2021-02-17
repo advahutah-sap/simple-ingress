@@ -1,0 +1,10 @@
+apiVersion: newgroup.adva.domain/v1
+kind: SimpleIngress
+metadata:
+  name: simpleingress-sample2
+spec:
+  rules:
+  - host: "www.httpbin.blabla.net"
+    backend:
+      serviceName: httpbin
+      servicePort: 80
