@@ -8,3 +8,8 @@ spec:
     backend:
       serviceName: httpbin
       servicePort: 80
+  - host: "www.demo.net"
+    backend:
+      serviceName: myhttpserver
+      servicePort: 90
+

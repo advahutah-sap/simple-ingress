@@ -25,7 +25,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/klog"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -83,6 +82,7 @@ func (sir *SimpleIngressReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 		klog.Errorf("%s/%s: Could not get SimpleIngress", req.Namespace, req.Name)
 		return reconcile.Result{}, nil
 	}
+
 	// Handle SimpleIngress delete - remove specific simpleingress rules and routs
 	if simpleIngress.ObjectMeta.DeletionTimestamp != nil {
 		klog.Infof("simpleIngress.ObjectMeta.DeletionTimestamp: %s", simpleIngress.ObjectMeta.DeletionTimestamp)
@@ -93,14 +93,15 @@ func (sir *SimpleIngressReconciler) Reconcile(req ctrl.Request) (ctrl.Result, er
 
 	// Add or update routs according to simpleIngress rules
 	for _, rule := range simpleIngress.Spec.Rules {
-		//TODO: for each rule check that the backend exist
-		_, err := sir.serviceLister.Services("service").Get(rule.BackendService.BackendServiceName)
-		if err != nil {
-			klog.Errorf("Failed to get service: %s", rule.BackendService.BackendServiceName)
-		} else {
+		//TODO: for each rule check that the backend exist - not working yet
+		//_, err := sir.serviceLister.Services(req.Namespace).Get(rule.BackendService.BackendServiceName)
+		//if err != nil {
+		//	klog.Errorf("Failed to get service: %s", rule.BackendService.BackendServiceName)
+		//} else {
 			// if exist add it to the routing table
 			sir.createOrUpdateBackendRout(rule.Host, rule.BackendService.BackendServiceName, rule.BackendService.BackendServicePort)
-		}
+			// TODO: update the simple ingress status with success/failed to add rule.
+	//	}
 	}
 
 	return ctrl.Result{}, nil
@@ -155,7 +156,7 @@ func (s *SimpleIngressReconciler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "upstream server not found", http.StatusNotFound)
 		return
 	}
-	klog.Infof("host %s , path %s , beckend %s proxing request", r.Host, r.URL.Path, backendURL.String())
+	klog.Infof("host %s , path %s , backend %s proxing request", r.Host, r.URL.Path, backendURL.String())
 	proxy := httputil.NewSingleHostReverseProxy(backendURL)
 	proxy.ServeHTTP(w, r)
 }
